@@ -1,11 +1,19 @@
-![banner](banner.png?raw=true)
+
+I changed these files a while ago but only uploaded them now.
+
+Forked them from grub2-themes
+
+
+
+Basic install
+``sudo ./install.sh -t firewatch -i white -<your screen res> -b``
 
 ## Installation:
 
 Usage:  `sudo ./install.sh [OPTIONS...]`
 
 ```
-  -t, --theme     theme variant(s)          [tela|vimix|stylish|whitesur]       (default is tela)
+  -t, --theme     theme variant(s)          [tela|vimix|stylish|whitesur|firewatch]       (default is tela)
   -i, --icon      icon variant(s)           [color|white|whitesur]              (default is color)
   -s, --screen    screen display variant(s) [1080p|2k|4k|ultrawide|ultrawide2k] (default is 1080p)
   -r, --remove    Remove theme              [tela|vimix|stylish|whitesur]       (must add theme name option, default is tela)
@@ -108,12 +116,8 @@ After that, you can configure the theme as shown below. In this example it is in
    - Make sure to replace `[YOUR_RESOLUTION]` with your resolution and `[THEME]` with the theme
 
 ## Contributing:
- - If you made changes to icons, or added a new one:
-   - Delete the existing icon, if there is one
-   - Run `cd assets; ./render-all.sh`
- - Create a pull request from your branch or fork
- - If any issues occur, report then to the [issue](https://github.com/vinceliuice/grub2-themes/issues) page
-
+ - I'm not updating this repo anytime soon unless I get interested in doing this kind of stuff again
+ 
 ## Preview:
 ![preview](preview.png?raw=true)
 

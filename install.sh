@@ -4,16 +4,16 @@
 set -o errexit
 
 readonly ROOT_UID=0
-readonly Project_Name="GRUB2::THEMES"
+readonly Project_Name="GRUB2::THEMESMODDED"
 readonly MAX_DELAY=20                               # max delay for user to enter root password
 tui_root_login=
 
 THEME_DIR="/usr/share/grub/themes"
 REO_DIR="$(cd $(dirname $0) && pwd)"
 
-THEME_VARIANTS=('tela' 'vimix' 'stylish' 'whitesur')
+THEME_VARIANTS=('tela' 'vimix' 'stylish' 'whitesur' 'firewatch')
 ICON_VARIANTS=('color' 'white' 'whitesur')
-SCREEN_VARIANTS=('1080p' '2k' '4k' 'ultrawide' 'ultrawide2k')
+SCREEN_VARIANTS=('1080p' '2k' '4k')
 
 #################################
 #   :::::: C O L O R S ::::::   #
@@ -62,10 +62,10 @@ cat << EOF
 Usage: $0 [OPTION]...
 
 OPTIONS:
-  -t, --theme     theme variant(s)          [tela|vimix|stylish|whitesur]       (default is tela)
+  -t, --theme     theme variant(s)          [tela|vimix|stylish|whitesur|firewatch]       (default is tela)
   -i, --icon      icon variant(s)           [color|white|whitesur]              (default is color)
   -s, --screen    screen display variant(s) [1080p|2k|4k|ultrawide|ultrawide2k] (default is 1080p)
-  -r, --remove    Remove theme              [tela|vimix|stylish|whitesur]       (must add theme name option, default is tela)
+  -r, --remove    Remove theme              [tela|vimix|stylish|whitesur|firewatch]       (must add theme name option, default is tela)
 
   -b, --boot      install theme into '/boot/grub' or '/boot/grub2'
   -g, --generate  do not install but generate theme into chosen directory       (must add your directory)
@@ -77,10 +77,12 @@ EOF
 
 generate() {
   if [[ "${install_boot}" == 'true' ]]; then
+    if [[ -d "/boot/efi/EFI/fedora" ]]; then
+      THEME_DIR='/boot/efi/EFI/fedora/themes'
+    fi
     if [[ -d "/boot/grub" ]]; then
       THEME_DIR='/boot/grub/themes'
-    fi
-    if [[ -d "/boot/grub2" ]]; then
+    elif [[ -d "/boot/grub2" ]]; then
       THEME_DIR='/boot/grub2/themes'
     fi
   fi
@@ -128,6 +130,8 @@ install() {
 
   # Check for root access and proceed if it is present
   if [[ "$UID" -eq "$ROOT_UID" ]]; then
+    echo -e '\0033\0143'
+
     # Generate the theme in "/usr/share/grub/themes"
     generate "${theme}" "${icon}" "${screen}"
 
@@ -157,6 +161,14 @@ install() {
         else
           #Append GRUB_FONT
           echo "GRUB_FONT=/boot/grub2/fonts/unicode.pf2" >> /etc/default/grub
+        fi
+      elif [[ -f "/boot/efi/EFI/fedora/fonts/unicode.pf2" ]]; then
+        if grep "GRUB_FONT=" /etc/default/grub 2>&1 >/dev/null; then
+          #Replace GRUB_FONT
+          sed -i "s|.*GRUB_FONT=.*|GRUB_FONT=/boot/efi/EFI/fedora/fonts/unicode.pf2|" /etc/default/grub
+        else
+          #Append GRUB_FONT
+          echo "GRUB_FONT=/boot/efi/EFI/fedora/fonts/unicode.pf2" >> /etc/default/grub
         fi
       fi
     fi
@@ -278,6 +290,7 @@ run_dialog() {
         else
           #block for 3 seconds before allowing another attempt
           sleep 3
+          echo -e '\0033\0143'
           prompt -e "\n [ Error! ] -> Incorrect password!\n"
           exit 1
         fi
@@ -329,6 +342,7 @@ run_dialog() {
 }
 
 operation_canceled() {
+  echo -e '\0033\0143'
   prompt -i "\n Operation canceled by user, Bye!"
   exit 1
 }
@@ -342,8 +356,13 @@ updating_grub() {
   elif has_command zypper || has_command transactional-update; then
     grub2-mkconfig -o /boot/grub2/grub.cfg
   # Check for Fedora (regular or Atomic)
-  elif has_command dnf || has_command rpm-ostree; then 
-    #Check for BIOS
+  elif has_command dnf || has_command rpm-ostree; then
+    # check for UEFI
+    if [[ -f /boot/efi/EFI/fedora/grub.cfg ]]; then
+      prompt -s "Find config file on /boot/efi/EFI/fedora/grub.cfg ...\n"
+      grub2-mkconfig -o /boot/efi/EFI/fedora/grub.cfg
+    fi
+    # Check for Bios
     if [[ -f /boot/grub2/grub.cfg ]]; then
       prompt -s "Find config file on /boot/grub2/grub.cfg ...\n"
       grub2-mkconfig -o /boot/grub2/grub.cfg
@@ -447,6 +466,7 @@ remove() {
       else
         #block for 3 seconds before allowing another attempt
         sleep 3
+        echo -e '\0033\0143'
         prompt -e "\n [ Error! ] -> Incorrect password!\n"
         exit 1
       fi
@@ -516,6 +536,10 @@ while [[ $# -gt 0 ]]; do
             themes+=("${THEME_VARIANTS[3]}")
             shift
             ;;
+          firewatch)
+            themes+=("${THEME_VARIANTS[34]}")
+            shift
+            ;;
           -*)
             break
             ;;
@@ -555,6 +579,10 @@ while [[ $# -gt 0 ]]; do
             ;;
           whitesur)
             themes+=("${THEME_VARIANTS[3]}")
+            shift
+            ;;
+          firewatch)
+            themes+=("${THEME_VARIANTS[4]}")
             shift
             ;;
           -*)
@@ -623,7 +651,7 @@ while [[ $# -gt 0 ]]; do
             break
             ;;
           *)
-            prompt -e "ERROR: Unrecognized screen variant '$1'."
+            prompt -e "ERROR: Unrecognized icon variant '$1'."
             prompt -i "Try '$0 --help' for more information."
             exit 1
             ;;
