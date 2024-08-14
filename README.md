@@ -6,7 +6,7 @@ Forked them from grub2-themes
 
 
 Basic install
-``sudo ./install.sh -t firewatch -i white -<your screen res> -b``
+``sudo ./install.sh -t firewatch -i white -s <your screen res> -b``
 
 ## Installation:
 
